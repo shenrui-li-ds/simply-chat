@@ -1,0 +1,11 @@
+anthropic
+asyncio
+gpt_researcher
+httpx
+lancedb
+langchain
+langchain-community
+ollama
+openai
+requests
+streamlit
