@@ -26,6 +26,18 @@ def chat_openai(temperature, top_p, max_tokens, system_prompt, openai_api_key):
     st.session_state.messages.append({"role": "assistant", "content": response})
 
 def chat_anthropic(temperature, top_p, max_tokens, system_prompt, anthropic_api_key):
+    # Anthropic requires first message must use the "user" role
+    while st.session_state.messages and st.session_state.messages[0]["role"] != "user":
+        st.session_state.messages.pop(0)
+    if st.session_state.messages is None or len(st.session_state.messages) == 0:
+        st.error(
+            (
+                "Anthropic encounters an issue with multi-turn conversations, "
+                "please consider switching to a different provider."
+            ), 
+            icon="🚨"
+        )
+
     # Initialize client
     client = anthropic.Anthropic(api_key=anthropic_api_key)
     messages_for_llm = [
@@ -69,7 +81,7 @@ def chat_ollama(temperature, top_p, max_tokens, system_prompt):
     st.session_state.messages.append({"role": "assistant", "content": response})
 
 def chat_google(google_api_key):
-    # Weird ass Google API - your context length can only be odd numbers smh...
+    # Weird Google API - your context length can only be odd numbers smh...
     if len(st.session_state.messages)%2 == 0:
         st.session_state.messages.pop(0)
     # Initialize client
@@ -92,7 +104,7 @@ def chat_google(google_api_key):
     except InvalidArgument:
         st.error(
             (
-                "Google encounters a strange issue with multi-turn conversations, "
+                "Google encounters an issue with multi-turn conversations, "
                 "please consider switching to a different provider."
             ), 
             icon="🚨"
