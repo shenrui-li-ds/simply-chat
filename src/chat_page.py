@@ -3,6 +3,7 @@ import streamlit as st
 import openai
 import anthropic
 import google.generativeai as genai
+from google.api_core.exceptions import InvalidArgument
 
 def chat_openai(temperature, top_p, max_tokens, system_prompt, openai_api_key):
     # Initialize client
@@ -67,8 +68,6 @@ def chat_ollama(temperature, top_p, max_tokens, system_prompt):
     response = st.write_stream(stream)
     st.session_state.messages.append({"role": "assistant", "content": response})
 
-from google.api_core.exceptions import InvalidArgument
-
 def chat_google(google_api_key):
     # Weird ass Google API - your context length can only be odd numbers smh...
     if len(st.session_state.messages)%2 == 0:
@@ -124,7 +123,7 @@ def chat_page():
             st.markdown(user_input)
 
         with st.chat_message("assistant"):
-            if "api_provider" in st.session_state and "system_prompt" in st.session_state:
+            if "api_provider" in st.session_state and (st.session_state["api_provider"] is not None) and "system_prompt" in st.session_state:
                 api_provider = st.session_state["api_provider"]
                 system_prompt = st.session_state["system_prompt"]
 

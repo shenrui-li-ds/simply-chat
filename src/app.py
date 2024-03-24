@@ -12,6 +12,8 @@ from multi_agents_page import multi_agents_page
 def main():
     st.set_page_config(page_title="SimplyChat", page_icon="💬")
     st.session_state.secrets = {}
+    if "api_provider" not in st.session_state:
+        st.session_state["api_provider"] = None
     
     selected_page = side_bar()
     # Page content based on selection

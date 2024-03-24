@@ -88,7 +88,7 @@ def side_bar():
                 "Ollama": get_ollama_models(),
             }
         
-        if "api_provider" in st.session_state and "your_api_key" in st.session_state.secrets:
+        if "api_provider" in st.session_state and (st.session_state["api_provider"] is not None) and "your_api_key" in st.session_state.secrets:
             api_provider = st.session_state["api_provider"]
             provided_models = models.get(api_provider, [])
             selected_model = st.selectbox("Select a model", provided_models)
