@@ -9,7 +9,6 @@ from multi_agents_page import multi_agents_page
 # import whisper
 # import numpy as np
 
-
 def main():
     st.set_page_config(page_title="SimplyChat", page_icon="💬")
     st.session_state.secrets = {}
@@ -27,3 +26,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

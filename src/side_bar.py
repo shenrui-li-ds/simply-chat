@@ -3,8 +3,9 @@ import ollama
 import httpx
 import requests
 
-
 def get_openai_models(OPENAI_API_KEY) -> list:
+    api_provider = st.session_state["api_provider"]
+    if api_provider == "OpenAI":
         url = "https://api.openai.com/v1/models"
         headers = {'Authorization': f'Bearer {OPENAI_API_KEY}'}
         response = requests.get(url, headers=headers)
@@ -13,22 +14,24 @@ def get_openai_models(OPENAI_API_KEY) -> list:
         if response.status_code == 200:
             return [i['id'] for i in response.json()['data'] if 'gpt' in i['id']]
         else:
-            print(f"Failed to fetch models, status code: {response.status_code}")
+            print(f"Failed to fetch OpenAI models, status code: {response.status_code}")
             return []
 
 def get_ollama_models() -> list:
-    try:
-        # Return the list of available local models if connected successfully
-        return [m['name'] for m in ollama.list()['models']]
-    except httpx.ConnectError as e:
-        print(f"Connection error: {e}")
-        st.warning(' You need to run Ollama in the background!', icon='⚠️')
-        # Handle the connection error or return a fallback value
-        return []
-    except Exception as e:
-        # Catch other exceptions to avoid failing silently
-        print(f"An unexpected error occurred: {e}")
-        return []
+    api_provider = st.session_state["api_provider"]
+    if api_provider == "Ollama":
+        try:
+            # Return the list of available local models if connected successfully
+            return [m['name'] for m in ollama.list()['models']]
+        except httpx.ConnectError as e:
+            print(f"Connection error: {e}")
+            st.warning(' You need to run Ollama in the background!', icon='⚠️')
+            # Handle the connection error or return a fallback value
+            return []
+        except Exception as e:
+            # Catch other exceptions to avoid failing silently
+            print(f"An unexpected error occurred: {e}")
+            return []
 
 def check_ollama_connection() -> bool:
     url = 'http://localhost:11434/'
@@ -81,7 +84,7 @@ def side_bar():
         models = {
                 "OpenAI": get_openai_models(your_api_key) if your_api_key else [],
                 "Anthropic": ["claude-2", "claude-2.1", "claude-3-haiku-20240307", "claude-3-sonnet-20240229", "claude-3-opus-20240229"],
-                "Google": [], #["gemini-pro"],
+                "Google": ["gemini-pro"],
                 "Ollama": get_ollama_models(),
             }
         

@@ -5,6 +5,7 @@ httpx
 lancedb
 langchain
 langchain-community
+langchain_openai
 ollama
 openai
 requests

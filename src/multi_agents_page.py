@@ -3,26 +3,14 @@ from gpt_researcher import GPTResearcher
 import asyncio
 import os
 
+from contextlib import contextmanager
+from io import StringIO
+import sys
 
 async def get_report(query: str, report_type: str) -> str:
     researcher = GPTResearcher(query, report_type)
     report = await researcher.run()
     return report
-
-from contextlib import contextmanager
-from io import StringIO
-import sys
-
-# @contextmanager
-# def st_stdout(dst):
-#     old_stdout = sys.stdout
-#     sys.stdout = StringIO()
-#     try:
-#         yield
-#         output = sys.stdout.getvalue()
-#         getattr(st, dst)(output)
-#     finally:
-#         sys.stdout = old_stdout
 
 @contextmanager
 def st_redirect(src, dst):
@@ -61,7 +49,6 @@ def multi_agents_page():
     except TypeError:
         st.warning(' Please Enter your Tavily API key!', icon='⚠️')
 
-
     report_types = ["Research Report", "Resource Report", "Outline Report"]
     # Sidebar navigation
     report_type_user = st.radio("Select a report type", report_types)
@@ -77,7 +64,6 @@ def multi_agents_page():
     if st.button("Start Research"):
         with st.container(height=300):
             with st_stdout("markdown"):
-                # print("Prints as st.markdown()")
                 report = asyncio.run(get_report(query, report_type))
 
         st.download_button(
@@ -86,7 +72,3 @@ def multi_agents_page():
             file_name=f"{report_type}-{'-'.join([w for w in query.split(' ')][:3])}.md",
             mime='text/markdown',
         )
-        
-        # st.markdown(report)
-
-    
