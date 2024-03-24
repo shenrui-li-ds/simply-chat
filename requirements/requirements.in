@@ -1,5 +1,6 @@
 anthropic
 asyncio
+google-generativeai
 gpt_researcher
 httpx
 lancedb

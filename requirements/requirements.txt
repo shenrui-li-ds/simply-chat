@@ -48,6 +48,7 @@ brotli==1.1.0
     # via fonttools
 cachetools==5.3.3
     # via
+    #   google-auth
     #   lancedb
     #   streamlit
 certifi==2024.2.2
@@ -120,12 +121,34 @@ gitdb==4.0.11
     # via gitpython
 gitpython==3.1.42
     # via streamlit
+google-ai-generativelanguage==0.4.0
+    # via google-generativeai
+google-api-core[grpc]==2.18.0
+    # via
+    #   google-ai-generativelanguage
+    #   google-generativeai
+google-auth==2.29.0
+    # via
+    #   google-api-core
+    #   google-generativeai
+google-generativeai==0.4.1
+    # via -r requirements.in
+googleapis-common-protos==1.63.0
+    # via
+    #   google-api-core
+    #   grpcio-status
 gpt-researcher==0.1.0
     # via -r requirements.in
 greenlet==3.0.3
     # via
     #   playwright
     #   sqlalchemy
+grpcio==1.62.1
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio-status==1.62.1
+    # via google-api-core
 h11==0.14.0
     # via
     #   httpcore
@@ -262,20 +285,38 @@ pillow==10.2.0
     #   weasyprint
 playwright==1.42.0
     # via gpt-researcher
+proto-plus==1.23.0
+    # via
+    #   google-ai-generativelanguage
+    #   google-api-core
 protobuf==4.25.3
-    # via streamlit
+    # via
+    #   google-ai-generativelanguage
+    #   google-api-core
+    #   google-generativeai
+    #   googleapis-common-protos
+    #   grpcio-status
+    #   proto-plus
+    #   streamlit
 py==1.11.0
     # via retry
 pyarrow==15.0.0
     # via
     #   pylance
     #   streamlit
+pyasn1==0.5.1
+    # via
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.3.0
+    # via google-auth
 pycparser==2.21
     # via cffi
 pydantic==2.6.4
     # via
     #   anthropic
     #   fastapi
+    #   google-generativeai
     #   gpt-researcher
     #   lancedb
     #   langchain
@@ -334,6 +375,7 @@ requests==2.31.0
     #   -r requirements.in
     #   arxiv
     #   feedfinder2
+    #   google-api-core
     #   gpt-researcher
     #   huggingface-hub
     #   lancedb
@@ -357,6 +399,8 @@ rpds-py==0.18.0
     # via
     #   jsonschema
     #   referencing
+rsa==4.9
+    # via google-auth
 semver==3.0.2
     # via lancedb
 sgmllib3k==1.0.0
@@ -415,6 +459,7 @@ tornado==6.4
     # via streamlit
 tqdm==4.66.2
     # via
+    #   google-generativeai
     #   huggingface-hub
     #   lancedb
     #   nltk
@@ -423,6 +468,7 @@ typing-extensions==4.10.0
     # via
     #   anthropic
     #   fastapi
+    #   google-generativeai
     #   huggingface-hub
     #   openai
     #   pydantic
