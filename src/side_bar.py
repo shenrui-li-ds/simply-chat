@@ -56,7 +56,7 @@ def side_bar():
 
         # Model selection
         st.subheader('Models and parameters')
-        api_provider = st.selectbox("Select API Provider", ("OpenAI", "Anthropic", "Google", "Ollama"))
+        api_provider = st.selectbox("Select API Provider", ("OpenAI", "Anthropic", "Ollama", "Google", "Mistral"))
         your_api_key = st.text_input("Your API Key", value=None, type="password")
 
         # Stateful "Save" button    
@@ -84,8 +84,9 @@ def side_bar():
         models = {
                 "OpenAI": get_openai_models(your_api_key) if your_api_key else [],
                 "Anthropic": ["claude-2", "claude-2.1", "claude-3-haiku-20240307", "claude-3-sonnet-20240229", "claude-3-opus-20240229"],
-                "Google": ["gemini-pro"],
                 "Ollama": get_ollama_models(),
+                "Google": ["gemini-pro"],
+                "Mistral": ["open-mistral-7b", "open-mixtral-8x7b", "mistral-small-latest", "mistral-medium-latest", "mistral-large-latest"],
             }
         
         if "api_provider" in st.session_state and (st.session_state["api_provider"] is not None) and "your_api_key" in st.session_state.secrets:

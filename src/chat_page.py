@@ -4,6 +4,8 @@ import openai
 import anthropic
 import google.generativeai as genai
 from google.api_core.exceptions import InvalidArgument
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 
 def chat_openai(temperature, top_p, max_tokens, system_prompt, openai_api_key):
     # Initialize client
@@ -37,7 +39,6 @@ def chat_anthropic(temperature, top_p, max_tokens, system_prompt, anthropic_api_
             ), 
             icon="🚨"
         )
-
     # Initialize client
     client = anthropic.Anthropic(api_key=anthropic_api_key)
     messages_for_llm = [
@@ -81,7 +82,7 @@ def chat_ollama(temperature, top_p, max_tokens, system_prompt):
     st.session_state.messages.append({"role": "assistant", "content": response})
 
 def chat_google(google_api_key):
-    # Weird Google API - your context length can only be odd numbers smh...
+    # Weird Google API - your context turns can only be odd numbers smh...
     if len(st.session_state.messages)%2 == 0:
         st.session_state.messages.pop(0)
     # Initialize client
@@ -109,7 +110,35 @@ def chat_google(google_api_key):
             ), 
             icon="🚨"
         )
-    
+
+def chat_mistral(temperature, top_p, max_tokens, system_prompt, mistral_api_key):
+    # Initialize client
+    client = MistralClient(api_key=mistral_api_key)
+    # messages = [
+    #     ChatMessage(role="user", content="What is the best French cheese?")
+    # ]
+    messages_for_llm = [
+        ChatMessage(role="system", content=system_prompt)
+    ] + [
+        ChatMessage(role=m["role"], content=m["content"])
+        for m in st.session_state.messages
+    ]
+    # With streaming
+    stream_response = client.chat_stream(
+        model=st.session_state["selected_model"], 
+        messages=messages_for_llm,
+        temperature=temperature,
+        top_p=top_p,
+        max_tokens=max_tokens,
+        )
+    # Stream response
+    def generate_responses():
+        for chunk in stream_response:
+            yield chunk.choices[0].delta.content
+    # Stream response to streamlit
+    response = st.write_stream(generate_responses)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
 def chat_page():
     st.title("Chat Interface")
 
@@ -184,7 +213,20 @@ def chat_page():
                     max_tokens = st.session_state["max_tokens"]
                     # Ollama chat completion
                     chat_ollama(temperature, top_p, max_tokens, system_prompt)
+                
+                elif api_provider == "Mistral":
+                    if "selected_model" not in st.session_state:
+                        # Set default model
+                        st.session_state["selected_model"] = "open-mistral-7b"
                     
+                    # Set model parameters
+                    temperature = st.session_state["temperature"]
+                    top_p = st.session_state["top_p"]
+                    max_tokens = st.session_state["max_tokens"]
+                    mistral_api_key = st.session_state.secrets["your_api_key"]
+                    # Mistral chat completion
+                    chat_mistral(temperature, top_p, max_tokens, system_prompt, mistral_api_key)
+
                 else:
                     st.write("Invalid API provider selected.")
             else:

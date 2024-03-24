@@ -161,6 +161,7 @@ httpx==0.25.2
     # via
     #   -r requirements.in
     #   anthropic
+    #   mistralai
     #   ollama
     #   openai
 huggingface-hub==0.21.4
@@ -235,6 +236,8 @@ md2pdf==1.0.1
     # via gpt-researcher
 mdurl==0.1.2
     # via markdown-it-py
+mistralai==0.1.6
+    # via -r requirements.in
 multidict==6.0.5
     # via
     #   aiohttp
@@ -263,7 +266,9 @@ openai==1.14.2
     #   gpt-researcher
     #   langchain-openai
 orjson==3.9.15
-    # via langsmith
+    # via
+    #   langsmith
+    #   mistralai
 overrides==7.7.0
     # via lancedb
 packaging==23.2
@@ -277,6 +282,7 @@ packaging==23.2
 pandas==2.2.1
     # via
     #   altair
+    #   mistralai
     #   streamlit
 pillow==10.2.0
     # via
@@ -302,6 +308,7 @@ py==1.11.0
     # via retry
 pyarrow==15.0.0
     # via
+    #   mistralai
     #   pylance
     #   streamlit
 pyasn1==0.5.1
@@ -322,6 +329,7 @@ pydantic==2.6.4
     #   langchain
     #   langchain-core
     #   langsmith
+    #   mistralai
     #   openai
 pydantic-core==2.16.3
     # via pydantic

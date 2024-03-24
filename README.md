@@ -30,7 +30,7 @@ pip install -r ./requirements/requirements.txt
 ## 🧑‍💻 Usage
 To start the SimplyChat application, run the following command in the terminal:
 ```bash
-streamlit run app.py
+streamlit run src/app.py
 ```
 This will launch the Streamlit application in your default web browser. From there, you can navigate through the application's features using the sidebar, which includes Chat, Prompt, and Multi-Agents pages.
 
