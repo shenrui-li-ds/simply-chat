@@ -9,6 +9,9 @@ SimplyChat is a minimalistic chatbot user interface built with Streamlit, design
 - API Flexibility: Compatible with both open and closed source AI APIs.
 - Docker Support: Deploy and run the application using Docker for ease of use and scalability.
 
+## 🌐 Demo App
+Check out the [Demo](https://simply-chat.streamlit.app/) here.
+
 ## 💾 Installation
 1. Clone the repository to your local machine.
 ```bash
