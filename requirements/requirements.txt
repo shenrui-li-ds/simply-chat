@@ -163,9 +163,12 @@ httpx==0.25.2
     # via
     #   -r requirements.in
     #   anthropic
+    #   langchain-mistralai
     #   mistralai
     #   ollama
     #   openai
+httpx-sse==0.4.0
+    # via langchain-mistralai
 huggingface-hub==0.21.4
     # via tokenizers
 idna==3.6
@@ -209,8 +212,11 @@ langchain-core==0.1.33
     # via
     #   langchain
     #   langchain-community
+    #   langchain-mistralai
     #   langchain-openai
     #   langchain-text-splitters
+langchain-mistralai==0.1.0
+    # via -r requirements.in
 langchain-openai==0.1.1
     # via -r requirements.in
 langchain-text-splitters==0.0.1
@@ -461,7 +467,9 @@ tinysegmenter==0.3
 tldextract==5.1.2
     # via newspaper3k
 tokenizers==0.15.2
-    # via anthropic
+    # via
+    #   anthropic
+    #   langchain-mistralai
 toml==0.10.2
     # via streamlit
 toolz==0.12.1

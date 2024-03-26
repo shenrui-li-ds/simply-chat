@@ -7,7 +7,8 @@ httpx
 lancedb
 langchain
 langchain-community
-langchain_openai
+langchain-mistralai
+langchain-openai
 mistralai
 ollama
 openai
