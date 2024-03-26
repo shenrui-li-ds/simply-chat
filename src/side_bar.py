@@ -3,6 +3,7 @@ import ollama
 import httpx
 import requests
 
+@st.cache_data
 def get_openai_models(OPENAI_API_KEY) -> list:
     api_provider = st.session_state["api_provider"]
     if api_provider == "OpenAI":
@@ -17,6 +18,7 @@ def get_openai_models(OPENAI_API_KEY) -> list:
             print(f"Failed to fetch OpenAI models, status code: {response.status_code}")
             return []
 
+@st.cache_data
 def get_ollama_models() -> list:
     api_provider = st.session_state["api_provider"]
     if api_provider == "Ollama":
@@ -82,12 +84,12 @@ def side_bar():
             st.warning(' Please enter your credentials!', icon='⚠️')
 
         models = {
-                "OpenAI": get_openai_models(your_api_key) if your_api_key else [],
-                "Anthropic": ["claude-2", "claude-2.1", "claude-3-haiku-20240307", "claude-3-sonnet-20240229", "claude-3-opus-20240229"],
-                "Ollama": get_ollama_models(),
-                "Google": ["gemini-pro"],
-                "Mistral": ["open-mistral-7b", "open-mixtral-8x7b", "mistral-small-latest", "mistral-medium-latest", "mistral-large-latest"],
-            }
+            "OpenAI": get_openai_models(your_api_key) if your_api_key else [],
+            "Anthropic": ["claude-2", "claude-2.1", "claude-3-haiku-20240307", "claude-3-sonnet-20240229", "claude-3-opus-20240229"],
+            "Ollama": get_ollama_models(),
+            "Google": ["gemini-pro"],
+            "Mistral": ["open-mistral-7b", "open-mixtral-8x7b", "mistral-small-latest", "mistral-medium-latest", "mistral-large-latest"],
+        }
         
         if "api_provider" in st.session_state and (st.session_state["api_provider"] is not None) and "your_api_key" in st.session_state.secrets:
             api_provider = st.session_state["api_provider"]

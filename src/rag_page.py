@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import tempfile
 
 from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_mistralai.embeddings import MistralAIEmbeddings
@@ -21,7 +22,6 @@ from langchain_community.document_loaders import (
     UnstructuredWordDocumentLoader, 
 )
 
-# import os
 # import inspect
 # from langchain_community import document_loaders
 
@@ -65,26 +65,7 @@ def get_loader(file_path):
 
     return loader_class
 
-# def file_processor(uploaded_files):
-#     knowledge = []
-#     text_splitter = RecursiveCharacterTextSplitter()
-    
-#     for uploaded_file in uploaded_files:
-#         try:
-#             loader_class = get_loader(uploaded_file.name)
-#             loader = loader_class(file_path=uploaded_file.name)
-#             docs = loader.load()
-#             # Split text into chunks
-#             file_knowledge = text_splitter.split_documents(docs)
-#             knowledge.extend(file_knowledge)
-#         except ValueError as e:
-#             st.warning(str(e))
-#             continue
-
-#     return knowledge
-
-import tempfile
-
+# @st.cache_data
 def file_processor(uploaded_files):
     knowledge = []
     text_splitter = RecursiveCharacterTextSplitter()
@@ -92,6 +73,7 @@ def file_processor(uploaded_files):
     for uploaded_file in uploaded_files:
         try:
             loader_class = get_loader(uploaded_file.name)
+            # Create tempfile because loader_class takes PathLike objects
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 temp_file.write(uploaded_file.read())
                 temp_file_path = temp_file.name
