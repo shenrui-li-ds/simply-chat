@@ -1,69 +1,171 @@
-from langchain_openai import OpenAIEmbeddings
-from lancedb import Lance
 import streamlit as st
-import openai
+import os
 
-# Initialize OpenAI Embeddings
-openai_api_key = st.session_state.secrets["your_api_key"]
-embeddings = OpenAIEmbeddings(api_key=openai_api_key)
+from langchain_mistralai.chat_models import ChatMistralAI
+from langchain_mistralai.embeddings import MistralAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
 
-# Initialize Lance for your database
-lance_db = Lance("your_database_configuration")
+from langchain_community.document_loaders import (
+    CSVLoader,
+    JSONLoader,
+    PyPDFLoader, 
+    PythonLoader,
+    TextLoader, 
+    UnstructuredHTMLLoader,
+    UnstructuredImageLoader,
+    UnstructuredMarkdownLoader, 
+    UnstructuredWordDocumentLoader, 
+)
 
-def rag_retrieve_and_generate(query):
-    # Use embeddings to find relevant information in LanceDB
-    relevant_docs = lance_db.retrieve(query, embeddings)
+# import os
+# import inspect
+# from langchain_community import document_loaders
 
-    # Use a suitable LLM for generation based on the retrieved docs
-    combined_context = " ".join([doc.content for doc in relevant_docs]) + query
-    response = openai.Completion.create(engine="davinci", prompt=combined_context, max_tokens=150)
+# def get_loader(file_path):
+#     _, file_extension = os.path.splitext(file_path)
+#     file_extension = file_extension.lower().lstrip('.')  # Remove dot and convert to lowercase
 
-    return response.choices[0].text
+#     # Convert file extension to loader class name following a convention
+#     loader_class_name = f"{file_extension.capitalize()}Loader"
 
+#     # Search for a class with the matching name in the document_loaders module
+#     for name, obj in inspect.getmembers(document_loaders, inspect.isclass):
+#         if name == loader_class_name:
+#             return obj(file_path)  # Instantiate and return the loader class
+
+#     raise ValueError(f"No loader found for file type: {file_extension}")
+
+def get_loader(file_path):
+    # Map of file extensions to their corresponding loader classes
+    loaders = {
+        ".csv": CSVLoader,
+        ".docx": UnstructuredWordDocumentLoader,
+        ".html": UnstructuredHTMLLoader,
+        ".json": JSONLoader,
+        ".jpg": UnstructuredImageLoader,
+        ".md": UnstructuredMarkdownLoader,
+        ".pdf": PyPDFLoader,
+        ".png": UnstructuredImageLoader,
+        ".py": PythonLoader,
+        ".txt": TextLoader,
+    }
+
+    _, file_extension = os.path.splitext(file_path)
+    file_extension = file_extension.lower()
+
+    # Retrieve the loader class based on the file extension
+    loader_class = loaders.get(file_extension)
+
+    if not loader_class:
+        raise ValueError(f"Unsupported file type: {file_extension}")
+
+    return loader_class
+
+# def file_processor(uploaded_files):
+#     knowledge = []
+#     text_splitter = RecursiveCharacterTextSplitter()
+    
+#     for uploaded_file in uploaded_files:
+#         try:
+#             loader_class = get_loader(uploaded_file.name)
+#             loader = loader_class(file_path=uploaded_file.name)
+#             docs = loader.load()
+#             # Split text into chunks
+#             file_knowledge = text_splitter.split_documents(docs)
+#             knowledge.extend(file_knowledge)
+#         except ValueError as e:
+#             st.warning(str(e))
+#             continue
+
+#     return knowledge
+
+import tempfile
+
+def file_processor(uploaded_files):
+    knowledge = []
+    text_splitter = RecursiveCharacterTextSplitter()
+    
+    for uploaded_file in uploaded_files:
+        try:
+            loader_class = get_loader(uploaded_file.name)
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(uploaded_file.read())
+                temp_file_path = temp_file.name
+            loader = loader_class(file_path=temp_file_path)
+            docs = loader.load()
+            # Split text into chunks
+            file_knowledge = text_splitter.split_documents(docs)
+            knowledge.extend(file_knowledge)
+            os.unlink(temp_file_path)  # Remove the temporary file
+        except ValueError as e:
+            st.warning(str(e))
+            continue
+
+    return knowledge
+
+def mistral_rag(knowledge, user_query, mistral_api_key):
+    # Define the embedding model
+    embeddings = MistralAIEmbeddings(model="mistral-embed", mistral_api_key=mistral_api_key)
+    # Create the vector store 
+    vector = FAISS.from_documents(knowledge, embeddings)
+    # Define a retriever interface
+    retriever = vector.as_retriever()
+    # Define LLM
+    model = ChatMistralAI(mistral_api_key=mistral_api_key)
+    # Define prompt template
+    prompt = ChatPromptTemplate.from_template(
+    """Based on the provided context, please answer the following question. If the answer isn't found within the context, kindly state 'information not found' and suggest a plausible alternative if possible.
+
+    <context>
+    {context}
+    </context>
+
+    Query: {input}"""
+    )
+
+    # Create a retrieval chain to answer questions
+    document_chain = create_stuff_documents_chain(model, prompt)
+    retrieval_chain = create_retrieval_chain(retriever, document_chain)
+    # response = retrieval_chain.invoke({"input": user_query})
+    def generate_responses():
+        for chunk in retrieval_chain.stream({"input": user_query}):
+            # print(chunk)
+            if 'answer' in chunk:
+                yield chunk['answer']
+    # Stream response to streamlit
+    response = st.write_stream(generate_responses)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    # return response["answer"]
 
 def rag_page():
-    st.title("Retrieve and Generate (RAG)")
-    user_query = st.text_input("Enter your query:")
+    st.title("Retrieval-Augmented Generation (RAG)")
+    uploaded_files = st.file_uploader("Upload your file(s)", accept_multiple_files=True)
+    rag_api_provider = st.selectbox("Select API Provider", ("Mistral", "OpenAI"), key="rag_api_provider")
+    if "your_api_key" not in st.session_state.secrets:
+        st.warning(' Please enter your credentials in the side bar first.', icon='⚠️')
 
-    if st.button("Generate"):
-        with st.spinner("Retrieving and generating..."):
-            generated_response = rag_retrieve_and_generate(user_query)
-        st.text_area("Generated Response", value=generated_response, height=300)
+    if uploaded_files:
+        knowledge = file_processor(uploaded_files)
+    
+        if knowledge:
+            if user_query := st.chat_input("Enter your query here"):
+                with st.chat_message("user"):
+                    st.markdown(user_query)
+                st.session_state.messages.append({"role": "user", "content": user_query})
 
+                with st.chat_message("assistant"):
+                    if rag_api_provider == "Mistral":
+                        mistral_api_key = st.session_state.secrets["your_api_key"]
+                        with st.spinner("Retrieving and generating..."):
+                            mistral_rag(knowledge, user_query, mistral_api_key)
 
-# from langchain_community.document_loaders import TextLoader
-# from langchain_openai import OpenAIEmbeddings
-# from langchain_text_splitters import CharacterTextSplitter
-# from langchain_community.vectorstores import LanceDB
+                    elif rag_api_provider == "OpenAI":
+                        st.warning(' The OpenAI solution is still under development.', icon='⚠️')
 
-# import lancedb
+        else:
+            st.warning(' Failed to parse uploaded document(s).', icon='⚠️')
 
-# db = lancedb.connect("/tmp/lancedb")
-# table = db.create_table(
-#     "my_table",
-#     data=[
-#         {
-#             "vector": embeddings.embed_query("Hello World"),
-#             "text": "Hello World",
-#             "id": "1",
-#         }
-#     ],
-#     mode="overwrite",
-# )
-
-# # Load the document, split it into chunks, embed each chunk and load it into the vector store.
-# raw_documents = TextLoader('../../../state_of_the_union.txt').load()
-# text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-# documents = text_splitter.split_documents(raw_documents)
-# db = LanceDB.from_documents(documents, OpenAIEmbeddings())
-
-# client = openai.OpenAI(api_key=OPENAI_API_KEY)
-# embedding_model_name = "text-embedding-3-small"
-
-# result = client.embeddings.create(
-#     input=[
-#         "This is a sentence",
-#         "A second sentence"
-#     ],
-#     model=embedding_model_name,
-# )

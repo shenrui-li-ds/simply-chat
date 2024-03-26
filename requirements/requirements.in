@@ -1,5 +1,6 @@
 anthropic
 asyncio
+faiss-cpu
 google-generativeai
 gpt_researcher
 httpx

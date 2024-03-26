@@ -50,13 +50,13 @@ def side_bar():
     with st.sidebar:
         st.title("Navigation")
         # Page options
-        pages = ["Chat", "Prompt", "Multi-Agents"]
+        pages = ["Chat", "Prompt", "RAG", "Multi-Agents"]
         # Sidebar navigation
         selected_page = st.sidebar.radio("Select a page", pages)
 
         # Model selection
         st.subheader('Models and parameters')
-        api_provider = st.selectbox("Select API Provider", ("OpenAI", "Anthropic", "Ollama", "Google", "Mistral"))
+        api_provider = st.selectbox("Select API Provider", ("OpenAI", "Anthropic", "Ollama", "Google", "Mistral"), key="main_api_provider")
         your_api_key = st.text_input("Your API Key", value=None, type="password")
 
         # Stateful "Save" button    

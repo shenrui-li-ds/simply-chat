@@ -141,7 +141,7 @@ def chat_mistral(temperature, top_p, max_tokens, system_prompt, mistral_api_key)
 
 def chat_page():
     st.title("Chat Interface")
-
+    # st.sidebar.markdown("# Chat Interface")
     if "system_prompt" not in st.session_state:
         st.session_state['system_prompt'] = (
             "You are a helpful assistant and your job is to answer any questions the user may have. "

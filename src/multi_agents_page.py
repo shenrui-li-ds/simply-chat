@@ -44,7 +44,7 @@ def multi_agents_page():
     try:
         TAVILY_API_KEY = st.text_input("Your Tavily API Key", value=None, type="password")
         os.environ["TAVILY_API_KEY"] = TAVILY_API_KEY
-        os.environ["SMART_LLM_MODEL"] = "gpt-4-0125-preview"
+        os.environ["SMART_LLM_MODEL"] = st.session_state["selected_model"]
         os.environ["SMART_TOKEN_LIMIT"] = "4096"
     except TypeError:
         st.warning(' Please Enter your Tavily API key!', icon='⚠️')

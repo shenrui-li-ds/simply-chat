@@ -97,6 +97,8 @@ docopt==0.6.2
     # via md2pdf
 duckduckgo-search==5.1.0
     # via gpt-researcher
+faiss-cpu==1.8.0
+    # via -r requirements.in
 fastapi==0.110.0
     # via gpt-researcher
 feedfinder2==0.0.4
@@ -251,6 +253,7 @@ nltk==3.8.1
 numpy==1.26.4
     # via
     #   altair
+    #   faiss-cpu
     #   langchain
     #   langchain-community
     #   pandas
