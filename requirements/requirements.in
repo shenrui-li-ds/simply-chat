@@ -12,5 +12,6 @@ langchain-openai
 mistralai
 ollama
 openai
+pypdf
 requests
 streamlit

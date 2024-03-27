@@ -356,6 +356,8 @@ pymupdf==1.24.0
     # via gpt-researcher
 pymupdfb==1.24.0
     # via pymupdf
+pypdf==4.1.0
+    # via -r requirements.in
 pyphen==0.14.0
     # via weasyprint
 python-dateutil==2.9.0.post0
