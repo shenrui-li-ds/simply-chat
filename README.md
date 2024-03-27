@@ -60,4 +60,5 @@ This will launch the Streamlit application in your default web browser. From the
 
 ## 👏 Acknowledgments
 Thanks to the developers of Streamlit for providing an amazing platform to build web applications with ease.
-Gratitude to OpenAI, Anthropic, and Ollama for their state-of-the-art AI models and APIs.
+Gratitude to OpenAI, Anthropic, Google, Mistral and Ollama for their state-of-the-art AI models and APIs.
+Additionally, I want to acknowledge the invaluable contributions of open-source resources like [GPT-Researcher](https://github.com/assafelovic/gpt-researcher), among others, that make this project possible.

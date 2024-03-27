@@ -3,7 +3,7 @@ import ollama
 import httpx
 import requests
 
-@st.cache_data
+# @st.cache_data
 def get_openai_models(OPENAI_API_KEY) -> list:
     api_provider = st.session_state["api_provider"]
     if api_provider == "OpenAI":
@@ -18,7 +18,7 @@ def get_openai_models(OPENAI_API_KEY) -> list:
             print(f"Failed to fetch OpenAI models, status code: {response.status_code}")
             return []
 
-@st.cache_data
+# @st.cache_data
 def get_ollama_models() -> list:
     api_provider = st.session_state["api_provider"]
     if api_provider == "Ollama":

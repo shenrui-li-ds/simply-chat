@@ -141,6 +141,18 @@ def chat_mistral(temperature, top_p, max_tokens, system_prompt, mistral_api_key)
 
 def chat_page():
     st.title("Chat Interface")
+    if "api_provider" in st.session_state and "selected_model" in st.session_state:
+        api_provider = st.session_state["api_provider"]
+        selected_model = st.session_state["selected_model"]
+        st.caption((
+            f"Current model: [{api_provider}] - [{selected_model}]. "
+            "LLM can make mistakes. Consider checking important information."
+        ))
+    else:
+        st.caption((
+            "No API provider or model selected. "
+            "LLM can make mistakes. Consider checking important information."
+        ))
     # st.sidebar.markdown("# Chat Interface")
     if "system_prompt" not in st.session_state:
         st.session_state['system_prompt'] = (

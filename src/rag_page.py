@@ -2,14 +2,16 @@ import streamlit as st
 import os
 import tempfile
 
-from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_mistralai.embeddings import MistralAIEmbeddings
+from langchain_mistralai import ChatMistralAI
+from langchain_mistralai import MistralAIEmbeddings
+from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
+
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
-
 from langchain_community.document_loaders import (
     CSVLoader,
     JSONLoader,
@@ -65,7 +67,7 @@ def get_loader(file_path):
 
     return loader_class
 
-# @st.cache_data
+@st.cache_data
 def file_processor(uploaded_files):
     knowledge = []
     text_splitter = RecursiveCharacterTextSplitter()
@@ -123,6 +125,38 @@ def mistral_rag(knowledge, user_query, mistral_api_key):
     st.session_state.messages.append({"role": "assistant", "content": response})
     # return response["answer"]
 
+def openai_rag(knowledge, user_query, openai_api_key):
+    # Define the embedding model
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=openai_api_key)
+    # Create the vector store 
+    vector = FAISS.from_documents(knowledge, embeddings)
+    # Define a retriever interface
+    retriever = vector.as_retriever()
+    # Define LLM
+    model = ChatOpenAI(openai_api_key=openai_api_key)
+    # Define prompt template
+    prompt = ChatPromptTemplate.from_template(
+    """Based on the provided context, please answer the following question. If the answer isn't found within the context, kindly state 'information not found' and suggest a plausible alternative if possible.
+
+    <context>
+    {context}
+    </context>
+
+    Query: {input}"""
+    )
+
+    # Create a retrieval chain to answer questions
+    document_chain = create_stuff_documents_chain(model, prompt)
+    retrieval_chain = create_retrieval_chain(retriever, document_chain)
+    def generate_responses():
+        for chunk in retrieval_chain.stream({"input": user_query}):
+            # print(chunk)
+            if 'answer' in chunk:
+                yield chunk['answer']
+    # Stream response to streamlit
+    response = st.write_stream(generate_responses)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
 def rag_page():
     st.title("Retrieval-Augmented Generation (RAG)")
     uploaded_files = st.file_uploader("Upload your file(s)", accept_multiple_files=True)
@@ -134,6 +168,14 @@ def rag_page():
         knowledge = file_processor(uploaded_files)
     
         if knowledge:
+            if "messages" not in st.session_state:
+                st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+                # st.session_state.messages = []
+
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+
             if user_query := st.chat_input("Enter your query here"):
                 with st.chat_message("user"):
                     st.markdown(user_query)
@@ -146,7 +188,9 @@ def rag_page():
                             mistral_rag(knowledge, user_query, mistral_api_key)
 
                     elif rag_api_provider == "OpenAI":
-                        st.warning(' The OpenAI solution is still under development.', icon='⚠️')
+                        openai_api_key = st.session_state.secrets["your_api_key"]
+                        with st.spinner("Retrieving and generating..."):
+                            openai_rag(knowledge, user_query, openai_api_key)
 
         else:
             st.warning(' Failed to parse uploaded document(s).', icon='⚠️')
