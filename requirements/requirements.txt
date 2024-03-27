@@ -35,7 +35,6 @@ attrs==23.2.0
     # via
     #   aiohttp
     #   jsonschema
-    #   lancedb
     #   referencing
 backoff==2.2.1
     # via unstructured
@@ -52,7 +51,6 @@ brotli==1.1.0
 cachetools==5.3.3
     # via
     #   google-auth
-    #   lancedb
     #   streamlit
 certifi==2024.2.2
     # via
@@ -74,7 +72,6 @@ charset-normalizer==3.3.2
 click==8.1.7
     # via
     #   duckduckgo-search
-    #   lancedb
     #   nltk
     #   streamlit
     #   uvicorn
@@ -95,20 +92,14 @@ dataclasses-json==0.6.4
     #   langchain-community
     #   unstructured
     #   unstructured-client
-decorator==5.1.1
-    # via retry
 deepdiff==6.7.1
     # via unstructured-client
-deprecation==2.1.0
-    # via lancedb
 distro==1.9.0
     # via
     #   anthropic
     #   openai
 docopt==0.6.2
     # via md2pdf
-docx==0.2.4
-    # via -r requirements.in
 duckduckgo-search==5.1.0
     # via gpt-researcher
 emoji==2.11.0
@@ -218,8 +209,6 @@ jsonschema==4.21.1
     # via altair
 jsonschema-specifications==2023.12.1
     # via jsonschema
-lancedb==0.6.5
-    # via -r requirements.in
 langchain==0.1.13
     # via
     #   -r requirements.in
@@ -251,9 +240,9 @@ langsmith==0.1.31
     #   langchain-core
 lxml==5.1.0
     # via
-    #   docx
     #   duckduckgo-search
     #   newspaper3k
+    #   python-docx
     #   unstructured
 markdown==3.6
     # via gpt-researcher
@@ -281,6 +270,8 @@ mypy-extensions==1.0.0
     # via
     #   typing-inspect
     #   unstructured-client
+networkx==3.2.1
+    # via -r requirements.in
 newspaper3k==0.2.8
     # via gpt-researcher
 nltk==3.8.1
@@ -296,7 +287,6 @@ numpy==1.26.4
     #   pandas
     #   pyarrow
     #   pydeck
-    #   pylance
     #   streamlit
     #   unstructured
 ollama==0.1.7
@@ -312,12 +302,9 @@ orjson==3.9.15
     # via
     #   langsmith
     #   mistralai
-overrides==7.7.0
-    # via lancedb
 packaging==23.2
     # via
     #   altair
-    #   deprecation
     #   huggingface-hub
     #   langchain-core
     #   marshmallow
@@ -332,7 +319,6 @@ pdf2image==1.17.0
     # via -r requirements.in
 pillow==10.2.0
     # via
-    #   docx
     #   newspaper3k
     #   pdf2image
     #   streamlit
@@ -352,12 +338,9 @@ protobuf==4.25.3
     #   grpcio-status
     #   proto-plus
     #   streamlit
-py==1.11.0
-    # via retry
 pyarrow==15.0.0
     # via
     #   mistralai
-    #   pylance
     #   streamlit
 pyasn1==0.5.1
     # via
@@ -373,7 +356,6 @@ pydantic==2.6.4
     #   fastapi
     #   google-generativeai
     #   gpt-researcher
-    #   lancedb
     #   langchain
     #   langchain-core
     #   langsmith
@@ -389,8 +371,6 @@ pyee==11.0.1
     # via playwright
 pygments==2.17.2
     # via rich
-pylance==0.10.5
-    # via lancedb
 pymupdf==1.24.0
     # via gpt-researcher
 pymupdfb==1.24.0
@@ -406,6 +386,8 @@ python-dateutil==2.9.0.post0
     #   newspaper3k
     #   pandas
     #   unstructured-client
+python-docx==1.1.0
+    # via -r requirements.in
 python-dotenv==1.0.1
     # via gpt-researcher
 python-iso639==2024.2.7
@@ -420,15 +402,12 @@ pyyaml==6.0.1
     # via
     #   gpt-researcher
     #   huggingface-hub
-    #   lancedb
     #   langchain
     #   langchain-community
     #   langchain-core
     #   newspaper3k
 rapidfuzz==3.7.0
     # via unstructured
-ratelimiter==1.2.0.post0
-    # via lancedb
 referencing==0.34.0
     # via
     #   jsonschema
@@ -445,7 +424,6 @@ requests==2.31.0
     #   google-api-core
     #   gpt-researcher
     #   huggingface-hub
-    #   lancedb
     #   langchain
     #   langchain-community
     #   langchain-core
@@ -460,8 +438,6 @@ requests==2.31.0
     #   unstructured-client
 requests-file==2.0.0
     # via tldextract
-retry==0.9.2
-    # via lancedb
 rich==13.7.1
     # via streamlit
 rpds-py==0.18.0
@@ -470,8 +446,6 @@ rpds-py==0.18.0
     #   referencing
 rsa==4.9
     # via google-auth
-semver==3.0.2
-    # via lancedb
 sgmllib3k==1.0.0
     # via feedparser
 six==1.16.0
@@ -536,7 +510,6 @@ tqdm==4.66.2
     # via
     #   google-generativeai
     #   huggingface-hub
-    #   lancedb
     #   nltk
     #   openai
 typing-extensions==4.10.0
@@ -549,6 +522,7 @@ typing-extensions==4.10.0
     #   pydantic
     #   pydantic-core
     #   pyee
+    #   python-docx
     #   sqlalchemy
     #   streamlit
     #   typing-inspect

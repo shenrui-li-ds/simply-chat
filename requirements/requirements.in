@@ -1,20 +1,21 @@
 anthropic
 asyncio
-docx
 faiss-cpu
 google-generativeai
 gpt_researcher
 httpx
-lancedb
+# lancedb
 langchain
 langchain-community
 langchain-mistralai
 langchain-openai
 mistralai
+networkx
 ollama
 openai
 pdf2image
 pypdf
+python-docx
 requests
 streamlit
 unstructured
