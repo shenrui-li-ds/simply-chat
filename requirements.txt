@@ -104,6 +104,8 @@ duckduckgo-search==5.1.0
     # via gpt-researcher
 emoji==2.11.0
     # via unstructured
+et-xmlfile==1.1.0
+    # via openpyxl
 faiss-cpu==1.8.0
     # via -r requirements.in
 fastapi==0.110.0
@@ -296,6 +298,8 @@ openai==1.14.2
     #   -r requirements.in
     #   gpt-researcher
     #   langchain-openai
+openpyxl==3.1.2
+    # via -r requirements.in
 ordered-set==4.1.0
     # via deepdiff
 orjson==3.9.15
