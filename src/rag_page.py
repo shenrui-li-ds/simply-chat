@@ -18,6 +18,7 @@ from langchain_community.document_loaders import (
     PyPDFLoader, 
     PythonLoader,
     TextLoader, 
+    UnstructuredExcelLoader,
     UnstructuredHTMLLoader,
     UnstructuredImageLoader,
     UnstructuredMarkdownLoader, 
@@ -54,6 +55,7 @@ def get_loader(file_path):
         ".png": UnstructuredImageLoader,
         ".py": PythonLoader,
         ".txt": TextLoader,
+        ".xlsx": UnstructuredExcelLoader,
     }
 
     _, file_extension = os.path.splitext(file_path)

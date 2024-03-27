@@ -107,6 +107,8 @@ distro==1.9.0
     #   openai
 docopt==0.6.2
     # via md2pdf
+docx==0.2.4
+    # via -r requirements.in
 duckduckgo-search==5.1.0
     # via gpt-researcher
 emoji==2.11.0
@@ -203,17 +205,13 @@ jinja2==3.1.3
     #   gpt-researcher
     #   pydeck
 joblib==1.3.2
-    # via
-    #   nltk
-    #   unstructured
+    # via nltk
 jsonpatch==1.33
     # via
     #   langchain
     #   langchain-core
 jsonpath-python==1.0.6
-    # via
-    #   unstructured
-    #   unstructured-client
+    # via unstructured-client
 jsonpointer==2.4
     # via jsonpatch
 jsonschema==4.21.1
@@ -253,6 +251,7 @@ langsmith==0.1.31
     #   langchain-core
 lxml==5.1.0
     # via
+    #   docx
     #   duckduckgo-search
     #   newspaper3k
     #   unstructured
@@ -329,9 +328,13 @@ pandas==2.2.1
     #   altair
     #   mistralai
     #   streamlit
+pdf2image==1.17.0
+    # via -r requirements.in
 pillow==10.2.0
     # via
+    #   docx
     #   newspaper3k
+    #   pdf2image
     #   streamlit
     #   weasyprint
 playwright==1.42.0

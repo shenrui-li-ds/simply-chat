@@ -1,5 +1,6 @@
 anthropic
 asyncio
+docx
 faiss-cpu
 google-generativeai
 gpt_researcher
@@ -12,6 +13,7 @@ langchain-openai
 mistralai
 ollama
 openai
+pdf2image
 pypdf
 requests
 streamlit
