@@ -50,8 +50,37 @@ This will launch the Streamlit application in your default web browser. From the
 - Supported APIs: OpenAI and Tavily (currently).
 - Download reports in Markdown format.
 
-### 🐳 Docker Deployment (WIP)
-<!-- To deploy SimplyChat using Docker, use the provided Dockerfile to build and run the application in a containerized environment. This ensures compatibility and ease of deployment across various systems. -->
+### 🐳 Docker Deployment
+Quickly set up SimplyChat with Docker:
+
+1. **Preparation**:
+   - Ensure Docker is installed from [Docker's site](https://www.docker.com/products/docker-desktop/).
+   - Navigate to your project's root directory where the Dockerfile is.
+     ```bash
+     cd <repository-directory>
+     ```
+
+2. **Build the Image**:
+   - Create a Docker image named `simplychat-image`.
+     ```bash
+     docker build -t simplychat-image .
+     ```
+
+3. **Run the Container**:
+   - Launch a container named `simplychat-container` using the built image, mapping port `8501` to access the app.
+     ```bash
+     docker run --name simplychat-container -p 8501:8501 -d simplychat-image
+     ```
+
+4. **Access the App**:
+   - Visit `http://localhost:8501` in your browser.
+
+5. **Cleanup** (Optional):
+   - Stop and remove the container when done.
+     ```bash
+     docker stop simplychat-container
+     docker rm simplychat-container
+     ```
 
 ## 📋 Notes
 - Ensure you have the necessary API keys for the AI providers you intend to use.

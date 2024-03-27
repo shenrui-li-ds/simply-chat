@@ -159,8 +159,22 @@ def openai_rag(knowledge, user_query, openai_api_key):
 
 def rag_page():
     st.title("Retrieval-Augmented Generation (RAG)")
+    st.caption("Only support OpenAI and Mistral models at this time.")
+    if "api_provider" in st.session_state and "selected_model" in st.session_state:
+        api_provider = st.session_state["api_provider"]
+        selected_model = st.session_state["selected_model"]
+        st.caption((
+            f"Current model: [{api_provider}] - [{selected_model}]. "
+            "LLM can make mistakes. Consider checking important information."
+        ))
+    else:
+        st.caption((
+            "No API provider or model selected. "
+            "LLM can make mistakes. Consider checking important information."
+        ))
     uploaded_files = st.file_uploader("Upload your file(s)", accept_multiple_files=True)
-    rag_api_provider = st.selectbox("Select API Provider", ("Mistral", "OpenAI"), key="rag_api_provider")
+    rag_api_provider = st.session_state["api_provider"]
+
     if "your_api_key" not in st.session_state.secrets:
         st.warning(' Please enter your credentials in the side bar first.', icon='⚠️')
 
@@ -191,6 +205,9 @@ def rag_page():
                         openai_api_key = st.session_state.secrets["your_api_key"]
                         with st.spinner("Retrieving and generating..."):
                             openai_rag(knowledge, user_query, openai_api_key)
+                    
+                    else:
+                        st.warning(' Only support OpenAI and Mistral models at this time.', icon='⚠️')
 
         else:
             st.warning(' Failed to parse uploaded document(s).', icon='⚠️')
