@@ -65,7 +65,7 @@ def get_loader(file_path):
     loader_class = loaders.get(file_extension)
 
     if not loader_class:
-        raise ValueError(f"Unsupported file type: {file_extension}. Please remove this file to proceed.")
+        raise ValueError(f"Unsupported file type: \"{file_extension}\". Please remove this file to proceed.")
 
     return loader_class
 
