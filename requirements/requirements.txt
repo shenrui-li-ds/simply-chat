@@ -319,12 +319,9 @@ pandas==2.2.1
     #   altair
     #   mistralai
     #   streamlit
-pdf2image==1.17.0
-    # via -r requirements.in
 pillow==10.2.0
     # via
     #   newspaper3k
-    #   pdf2image
     #   streamlit
     #   weasyprint
 playwright==1.42.0

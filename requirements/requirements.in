@@ -13,8 +13,11 @@ mistralai
 networkx
 ollama
 openai
+# opencv-python
 openpyxl
-pdf2image
+# pdf2image
+# pdfminer.six
+# pillow-heif
 pypdf
 python-docx
 requests
