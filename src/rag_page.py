@@ -111,7 +111,8 @@ def file_processor(uploaded_files):
     return knowledge
 
 def base_rag_chain(knowledge, user_query, api_key, 
-                   embedding_model_class, embedding_model_name, chat_model_class):
+                   embedding_model_class, embedding_model_name, 
+                   chat_model_class, chat_model_name):
     # Define the embedding model
     api_provider = st.session_state["api_provider"]
     key_param = {
@@ -145,6 +146,7 @@ def base_rag_chain(knowledge, user_query, api_key,
         'max_tokens': max_tokens
     }
     model = chat_model_class(
+        model=chat_model_name, 
         **{key_param[api_provider]: api_key},
         **model_params
     )
@@ -187,12 +189,18 @@ def base_rag_chain(knowledge, user_query, api_key,
     st.session_state.messages.append({"role": "assistant", "content": response})
 
 def mistral_rag(knowledge, user_query, mistral_api_key):
+    chat_model = st.session_state["selected_model"]
+    print(chat_model)
     base_rag_chain(knowledge, user_query, mistral_api_key, 
-                   MistralAIEmbeddings, "mistral-embed", ChatMistralAI)
+                   MistralAIEmbeddings, "mistral-embed", 
+                   ChatMistralAI, chat_model)
 
 def openai_rag(knowledge, user_query, openai_api_key):
+    chat_model = st.session_state["selected_model"]
+    print(chat_model)
     base_rag_chain(knowledge, user_query, openai_api_key, 
-                   OpenAIEmbeddings, "text-embedding-3-small", ChatOpenAI)
+                   OpenAIEmbeddings, "text-embedding-3-small", 
+                   ChatOpenAI, chat_model)
 
 def rag_page():
     st.title("Retrieval-Augmented Generation (RAG)")
