@@ -18,10 +18,10 @@ def main():
         chat_page()
     elif selected_page == "Prompt":
         system_prompt_page()
-    elif selected_page == "Multi-Agents":
-        multi_agents_page()
     elif selected_page == "RAG":
         rag_page()
+    elif selected_page == "Multi-Agents":
+        multi_agents_page()
 
 if __name__ == "__main__":
     main()

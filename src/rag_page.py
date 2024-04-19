@@ -12,6 +12,10 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import FlashrankRerank
+from flashrank import Ranker
+
 from langchain_community.document_loaders import (
     CSVLoader,
     JSONLoader,
@@ -20,10 +24,22 @@ from langchain_community.document_loaders import (
     TextLoader, 
     UnstructuredExcelLoader,
     UnstructuredHTMLLoader,
-    UnstructuredImageLoader,
+    # UnstructuredImageLoader,
     UnstructuredMarkdownLoader, 
     UnstructuredWordDocumentLoader, 
 )
+
+# Custom loader class to set utf-8 encoding
+class CustomTextLoader(TextLoader):
+    def __init__(self, file_path, encoding='utf-8'):
+        super().__init__(file_path)
+        self.encoding = encoding
+    
+    # def load(self):
+    #     # Modify the existing load method to use self.encoding
+    #     with open(self.file_path, 'r', encoding=self.encoding) as file:
+    #         return file.read()
+
 
 # import inspect
 # from langchain_community import document_loaders
@@ -54,19 +70,18 @@ def get_loader(file_path):
         ".pdf": PyPDFLoader,
         # ".png": UnstructuredImageLoader,
         ".py": PythonLoader,
-        ".txt": TextLoader,
+        ".txt": CustomTextLoader,
         ".xlsx": UnstructuredExcelLoader,
     }
 
     _, file_extension = os.path.splitext(file_path)
     file_extension = file_extension.lower()
-
     # Retrieve the loader class based on the file extension
     loader_class = loaders.get(file_extension)
 
     if not loader_class:
         raise ValueError(f"Unsupported file type: \"{file_extension}\". Please remove this file to proceed.")
-
+    
     return loader_class
 
 @st.cache_data
@@ -85,6 +100,8 @@ def file_processor(uploaded_files):
             docs = loader.load()
             # Split text into chunks
             file_knowledge = text_splitter.split_documents(docs)
+            for idx, text in enumerate(file_knowledge):
+                text.metadata["id"] = idx
             knowledge.extend(file_knowledge)
             os.unlink(temp_file_path)  # Remove the temporary file
         except ValueError as e:
@@ -93,15 +110,44 @@ def file_processor(uploaded_files):
 
     return knowledge
 
-def mistral_rag(knowledge, user_query, mistral_api_key):
+def base_rag_chain(knowledge, user_query, api_key, 
+                   embedding_model_class, embedding_model_name, chat_model_class):
     # Define the embedding model
-    embeddings = MistralAIEmbeddings(model="mistral-embed", mistral_api_key=mistral_api_key)
+    api_provider = st.session_state["api_provider"]
+    key_param = {
+        "Mistral": "mistral_api_key",
+        "OpenAI": "openai_api_key"
+    }
+    
+    # Ensure the provider is supported, else raise an exception
+    if api_provider not in key_param:
+        raise ValueError("Unsupported API provider: {}".format(api_provider))
+    
+    embeddings = embedding_model_class(
+        model=embedding_model_name, 
+        **{key_param[api_provider]: api_key},
+    )
+
     # Create the vector store 
     vector = FAISS.from_documents(knowledge, embeddings)
     # Define a retriever interface
     retriever = vector.as_retriever()
     # Define LLM
-    model = ChatMistralAI(mistral_api_key=mistral_api_key)
+    temperature = st.session_state["temperature"]
+    if api_provider == "Mistral":
+        top_p = 1
+    else:
+        top_p = st.session_state["top_p"]
+    max_tokens = st.session_state["max_tokens"]
+    model_params = {
+        'temperature': temperature,
+        'top_p': top_p,
+        'max_tokens': max_tokens
+    }
+    model = chat_model_class(
+        **{key_param[api_provider]: api_key},
+        **model_params
+    )
     # Define prompt template
     prompt = ChatPromptTemplate.from_template(
     """Based on the provided context, please answer the following question. If the answer isn't found within the context, kindly state 'information not found' and suggest a plausible alternative if possible.
@@ -113,51 +159,40 @@ def mistral_rag(knowledge, user_query, mistral_api_key):
     Query: {input}"""
     )
 
-    # Create a retrieval chain to answer questions
+    # # Basic retrieval chain to answer questions
+    # document_chain = create_stuff_documents_chain(model, prompt)
+    # basic_retrieval_chain = create_retrieval_chain(retriever, document_chain)
+
+    # Reranking for better retrieval precision
+    # Flashrank reranker
+    compressor = FlashrankRerank(client=Ranker, top_n=4, model="rank-T5-flan")
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, 
+        base_retriever=retriever
+    )
+
     document_chain = create_stuff_documents_chain(model, prompt)
-    retrieval_chain = create_retrieval_chain(retriever, document_chain)
-    # response = retrieval_chain.invoke({"input": user_query})
+    rerank_retrieval_chain = create_retrieval_chain(compression_retriever, document_chain)
+    # Custom defined function to stream response to UI
     def generate_responses():
-        for chunk in retrieval_chain.stream({"input": user_query}):
+        # for chunk in retrieval_chain.stream({"query": user_query}):
+        for chunk in rerank_retrieval_chain.stream({"input": user_query}):
             # print(chunk)
             if 'answer' in chunk:
                 yield chunk['answer']
+            elif 'result' in chunk:
+                yield chunk['result']
     # Stream response to streamlit
     response = st.write_stream(generate_responses)
     st.session_state.messages.append({"role": "assistant", "content": response})
-    # return response["answer"]
+
+def mistral_rag(knowledge, user_query, mistral_api_key):
+    base_rag_chain(knowledge, user_query, mistral_api_key, 
+                   MistralAIEmbeddings, "mistral-embed", ChatMistralAI)
 
 def openai_rag(knowledge, user_query, openai_api_key):
-    # Define the embedding model
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=openai_api_key)
-    # Create the vector store 
-    vector = FAISS.from_documents(knowledge, embeddings)
-    # Define a retriever interface
-    retriever = vector.as_retriever()
-    # Define LLM
-    model = ChatOpenAI(openai_api_key=openai_api_key)
-    # Define prompt template
-    prompt = ChatPromptTemplate.from_template(
-    """Based on the provided context, please answer the following question. If the answer isn't found within the context, kindly state 'information not found' and suggest a plausible alternative if possible.
-
-    <context>
-    {context}
-    </context>
-
-    Query: {input}"""
-    )
-
-    # Create a retrieval chain to answer questions
-    document_chain = create_stuff_documents_chain(model, prompt)
-    retrieval_chain = create_retrieval_chain(retriever, document_chain)
-    def generate_responses():
-        for chunk in retrieval_chain.stream({"input": user_query}):
-            # print(chunk)
-            if 'answer' in chunk:
-                yield chunk['answer']
-    # Stream response to streamlit
-    response = st.write_stream(generate_responses)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    base_rag_chain(knowledge, user_query, openai_api_key, 
+                   OpenAIEmbeddings, "text-embedding-3-small", ChatOpenAI)
 
 def rag_page():
     st.title("Retrieval-Augmented Generation (RAG)")
