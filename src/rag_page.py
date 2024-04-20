@@ -110,24 +110,25 @@ def file_processor(uploaded_files):
 
     return knowledge
 
-def base_rag_chain(knowledge, user_query, api_key, 
-                   embedding_model_class, embedding_model_name, 
-                   chat_model_class, chat_model_name):
+def base_rag_chain(knowledge, user_query, api_key, chat_model_name):
     # Define the embedding model
     api_provider = st.session_state["api_provider"]
-    key_param = {
-        "Mistral": "mistral_api_key",
-        "OpenAI": "openai_api_key"
-    }
-    
-    # Ensure the provider is supported, else raise an exception
-    if api_provider not in key_param:
-        raise ValueError("Unsupported API provider: {}".format(api_provider))
-    
-    embeddings = embedding_model_class(
-        model=embedding_model_name, 
-        **{key_param[api_provider]: api_key},
-    )
+    # key_param = {
+    #     "Mistral": "mistral_api_key",
+    #     "OpenAI": "openai_api_key"
+    # }
+    # # Ensure the provider is supported, else raise an exception
+    # if api_provider not in key_param:
+    #     raise ValueError("Unsupported API provider: {}".format(api_provider))
+    # embeddings = embedding_model_class(
+    #     model=embedding_model_name, 
+    #     **{key_param[api_provider]: api_key},
+    # )
+
+    if api_provider == "Mistral":
+        embeddings = MistralAIEmbeddings(model="mistral-embed", mistral_api_key=api_key,)
+    elif api_provider == "OpenAI":
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=api_key,)
 
     # Create the vector store 
     vector = FAISS.from_documents(knowledge, embeddings)
@@ -135,21 +136,21 @@ def base_rag_chain(knowledge, user_query, api_key,
     retriever = vector.as_retriever()
     # Define LLM
     temperature = st.session_state["temperature"]
-    if api_provider == "Mistral":
-        top_p = 1
-    else:
-        top_p = st.session_state["top_p"]
     max_tokens = st.session_state["max_tokens"]
     model_params = {
         'temperature': temperature,
-        'top_p': top_p,
         'max_tokens': max_tokens
     }
-    model = chat_model_class(
-        model=chat_model_name, 
-        **{key_param[api_provider]: api_key},
-        **model_params
-    )
+
+    # chat_model = chat_model_class(
+    #     model=chat_model_name, **{key_param[api_provider]: api_key}, **model_params
+    # )
+
+    if api_provider == "Mistral":
+        chat_model = ChatMistralAI(model=chat_model_name, mistral_api_key=api_key, **model_params)
+    elif api_provider == "OpenAI":
+        chat_model = ChatOpenAI(model=chat_model_name, openai_api_key=api_key, **model_params)
+
     # Define prompt template
     prompt = ChatPromptTemplate.from_template(
     """Based on the provided context, please answer the following question. If the answer isn't found within the context, kindly state 'information not found' and suggest a plausible alternative if possible.
@@ -173,7 +174,7 @@ def base_rag_chain(knowledge, user_query, api_key,
         base_retriever=retriever
     )
 
-    document_chain = create_stuff_documents_chain(model, prompt)
+    document_chain = create_stuff_documents_chain(chat_model, prompt)
     rerank_retrieval_chain = create_retrieval_chain(compression_retriever, document_chain)
     # Custom defined function to stream response to UI
     def generate_responses():
@@ -189,18 +190,14 @@ def base_rag_chain(knowledge, user_query, api_key,
     st.session_state.messages.append({"role": "assistant", "content": response})
 
 def mistral_rag(knowledge, user_query, mistral_api_key):
-    chat_model = st.session_state["selected_model"]
-    print(chat_model)
-    base_rag_chain(knowledge, user_query, mistral_api_key, 
-                   MistralAIEmbeddings, "mistral-embed", 
-                   ChatMistralAI, chat_model)
+    chat_model_name = st.session_state["selected_model"]
+    print(chat_model_name)
+    base_rag_chain(knowledge, user_query, mistral_api_key, chat_model_name)
 
 def openai_rag(knowledge, user_query, openai_api_key):
-    chat_model = st.session_state["selected_model"]
-    print(chat_model)
-    base_rag_chain(knowledge, user_query, openai_api_key, 
-                   OpenAIEmbeddings, "text-embedding-3-small", 
-                   ChatOpenAI, chat_model)
+    chat_model_name = st.session_state["selected_model"]
+    print(chat_model_name)
+    base_rag_chain(knowledge, user_query, openai_api_key, chat_model_name)
 
 def rag_page():
     st.title("Retrieval-Augmented Generation (RAG)")
