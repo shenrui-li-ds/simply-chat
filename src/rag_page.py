@@ -6,6 +6,9 @@ from langchain_mistralai import ChatMistralAI
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
+# from langchain_community.llms import Ollama
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
 
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -34,11 +37,6 @@ class CustomTextLoader(TextLoader):
     def __init__(self, file_path, encoding='utf-8'):
         super().__init__(file_path)
         self.encoding = encoding
-    
-    # def load(self):
-    #     # Modify the existing load method to use self.encoding
-    #     with open(self.file_path, 'r', encoding=self.encoding) as file:
-    #         return file.read()
 
 
 # import inspect
@@ -110,46 +108,57 @@ def file_processor(uploaded_files):
 
     return knowledge
 
-def base_rag_chain(knowledge, user_query, api_key, chat_model_name):
+def base_rag_chain(knowledge, user_query, api_key, 
+                   embedding_model_class, embedding_model_name, 
+                   chat_model_class, chat_model_name):
     # Define the embedding model
     api_provider = st.session_state["api_provider"]
-    # key_param = {
-    #     "Mistral": "mistral_api_key",
-    #     "OpenAI": "openai_api_key"
-    # }
-    # # Ensure the provider is supported, else raise an exception
-    # if api_provider not in key_param:
-    #     raise ValueError("Unsupported API provider: {}".format(api_provider))
-    # embeddings = embedding_model_class(
-    #     model=embedding_model_name, 
-    #     **{key_param[api_provider]: api_key},
-    # )
+    key_param = {
+        "Mistral": "mistral_api_key",
+        "OpenAI": "openai_api_key",
+    }
+    # Ensure the provider is supported, else raise an exception
+    if api_provider in key_param:
+        # Providers that require an API key
+        api_param = {key_param[api_provider]: api_key}
+    elif api_provider == "Ollama":
+        # "Ollama" does not require an API key
+        api_param = {}
+    else:
+        raise ValueError(f"Unsupported API provider: {api_provider}")
+    
+    embeddings = embedding_model_class(
+        model=embedding_model_name, 
+        **api_param,
+    )
 
-    if api_provider == "Mistral":
-        embeddings = MistralAIEmbeddings(model="mistral-embed", mistral_api_key=api_key,)
-    elif api_provider == "OpenAI":
-        embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=api_key,)
+    # if api_provider == "Mistral":
+    #     embeddings = MistralAIEmbeddings(model="mistral-embed", mistral_api_key=api_key)
+    # elif api_provider == "OpenAI":
+    #     embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=api_key)
 
     # Create the vector store 
     vector = FAISS.from_documents(knowledge, embeddings)
     # Define a retriever interface
     retriever = vector.as_retriever()
-    # Define LLM
+
+    # Define the chat model
     temperature = st.session_state["temperature"]
     max_tokens = st.session_state["max_tokens"]
     model_params = {
         'temperature': temperature,
-        'max_tokens': max_tokens
+        # 'max_tokens': max_tokens
     }
+    chat_model = chat_model_class(
+        model=chat_model_name, 
+        **api_param,
+        **model_params,
+    )
 
-    # chat_model = chat_model_class(
-    #     model=chat_model_name, **{key_param[api_provider]: api_key}, **model_params
-    # )
-
-    if api_provider == "Mistral":
-        chat_model = ChatMistralAI(model=chat_model_name, mistral_api_key=api_key, **model_params)
-    elif api_provider == "OpenAI":
-        chat_model = ChatOpenAI(model=chat_model_name, openai_api_key=api_key, **model_params)
+    # if api_provider == "Mistral":
+    #     chat_model = ChatMistralAI(model=chat_model_name, mistral_api_key=api_key, **model_params)
+    # elif api_provider == "OpenAI":
+    #     chat_model = ChatOpenAI(model=chat_model_name, openai_api_key=api_key, **model_params)
 
     # Define prompt template
     prompt = ChatPromptTemplate.from_template(
@@ -192,16 +201,27 @@ def base_rag_chain(knowledge, user_query, api_key, chat_model_name):
 def mistral_rag(knowledge, user_query, mistral_api_key):
     chat_model_name = st.session_state["selected_model"]
     print(chat_model_name)
-    base_rag_chain(knowledge, user_query, mistral_api_key, chat_model_name)
+    base_rag_chain(knowledge, user_query, mistral_api_key, 
+                   MistralAIEmbeddings, "mistral-embed", 
+                   ChatMistralAI, chat_model_name)
 
 def openai_rag(knowledge, user_query, openai_api_key):
     chat_model_name = st.session_state["selected_model"]
     print(chat_model_name)
-    base_rag_chain(knowledge, user_query, openai_api_key, chat_model_name)
+    base_rag_chain(knowledge, user_query, openai_api_key, 
+                   OpenAIEmbeddings, "text-embedding-3-small", 
+                   ChatOpenAI, chat_model_name)
+    
+def ollama_rag(knowledge, user_query, ollama_api_key):
+    chat_model_name = st.session_state["selected_model"]
+    print(chat_model_name)
+    base_rag_chain(knowledge, user_query, ollama_api_key, 
+                   OllamaEmbeddings, "mxbai-embed-large", 
+                   ChatOllama, chat_model_name)
 
 def rag_page():
     st.title("Retrieval-Augmented Generation (RAG)")
-    st.caption("Only support OpenAI and Mistral models at this time.")
+    st.caption("Only support OpenAI, Mistral and Ollama models at this time.")
     if "api_provider" in st.session_state and "selected_model" in st.session_state:
         api_provider = st.session_state["api_provider"]
         selected_model = st.session_state["selected_model"]
@@ -247,9 +267,14 @@ def rag_page():
                         openai_api_key = st.session_state.secrets["your_api_key"]
                         with st.spinner("Retrieving and generating..."):
                             openai_rag(knowledge, user_query, openai_api_key)
+
+                    elif rag_api_provider == "Ollama":
+                        ollama_api_key = ""
+                        with st.spinner("Retrieving and generating..."):
+                            ollama_rag(knowledge, user_query, ollama_api_key)
                     
                     else:
-                        st.warning(' Only support OpenAI and Mistral models at this time.', icon='⚠️')
+                        st.warning(' Selected provider is not supported at this time.', icon='⚠️')
 
         else:
             st.warning(' Failed to parse uploaded document(s).', icon='⚠️')
